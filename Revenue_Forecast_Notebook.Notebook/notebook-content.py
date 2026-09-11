@@ -12,45 +12,61 @@
 # META       "default_lakehouse_name": "Gold",
 # META       "default_lakehouse_workspace_id": "1dca1c65-3ce2-483e-a7fb-baf7fca28e9f",
 # META       "known_lakehouses": [
-# META         { "id": "a89b98b2-b7b2-477d-bc9c-9005e3b396aa" }
+# META         {
+# META           "id": "a89b98b2-b7b2-477d-bc9c-9005e3b396aa"
+# META         }
 # META       ]
 # META     }
 # META   }
 # META }
 # MARKDOWN ********************
 
-#  # Revenue forecasting on the Gold layer (weekly + monthly)
+# # Revenue forecasting on the Gold layer (weekly + monthly)
 #
-#  ```
-#  Bronze (sales csv) Ã¢â€â‚¬Silver_NotebookÃ¢â€â‚¬Ã¢â€“Â¶ Silver.sales_silver Ã¢â€â‚¬Gold_NotebookÃ¢â€â‚¬Ã¢â€“Â¶ Gold.factsales_gold + dims
-#                                                                                     Ã¢â€â€š  this notebook
-#                                                                                     Ã¢â€“Â¼
-#          Gold.revenue_forecast_gold   daily forecast (latest run)          Gold.revenue_weekly_gold    actual + forecast per ISO week
-#          Gold.forecast_backtest_gold  benchmark of every candidate model   Gold.revenue_monthly_gold   actual + forecast per month
-#          Gold.revenue_forecast_history_gold  monthly forecast of every run (append) for accuracy tracking
-#          MLflow experiment `sales_revenue_forecast` + registered model(s)
-#  ```
+# ```
+# Bronze (sales csv) Ã¢â€â‚¬Silver_NotebookÃ¢â€â‚¬Ã¢â€“Â¶ Silver.sales_silver Ã¢â€â‚¬Gold_NotebookÃ¢â€â‚¬Ã¢â€“Â¶ Gold.factsales_gold + dims
+#                                                                                    Ã¢â€â€š  this notebook
+#                                                                                    Ã¢â€“Â¼
+#         Gold.revenue_forecast_gold   daily forecast (latest run)          Gold.revenue_weekly_gold    actual + forecast per ISO week
+#         Gold.forecast_backtest_gold  benchmark of every candidate model   Gold.revenue_monthly_gold   actual + forecast per month
+#         Gold.revenue_forecast_history_gold  monthly forecast of every run (append) for accuracy tracking
+#         MLflow experiment `sales_revenue_forecast` + registered model(s)
+# ```
 #
-#  **Two ways to run it Ã¢â‚¬â€œ both read the *live* lakehouse tables, nothing is copied**
+# **Two ways to run it Ã¢â‚¬â€œ both read the *live* lakehouse tables, nothing is copied**
 #
-#  | | How | What happens |
-#  |---|---|---|
-#  | **Fabric** (portal, pipeline, or VS Code with the *Fabric Data Engineering* extension and the **Microsoft Fabric Runtime** kernel) | `spark` is available Ã¢â€ â€™ `RUN_MODE = "fabric-spark"` | aggregation runs in Spark, tables are written with `saveAsTable`, MLflow logs to the workspace experiment |
-#  | **Local VS Code** (any Python kernel, no Spark) | `spark` is missing Ã¢â€ â€™ `RUN_MODE = "local"` | reads `factsales_gold` straight from OneLake with `deltalake` + `azure-identity` (Delta protocol, always the latest committed version), writes the result tables back to OneLake, logs MLflow to Fabric through `synapseml-mlflow` (falls back to `./mlruns`) |
+# | | How | What happens |
+# |---|---|---|
+# | **Fabric** (portal, pipeline, or VS Code with the *Fabric Data Engineering* extension and the **Microsoft Fabric Runtime** kernel) | `spark` is available Ã¢â€ â€™ `RUN_MODE = "fabric-spark"` | aggregation runs in Spark, tables are written with `saveAsTable`, MLflow logs to the workspace experiment |
+# | **Local VS Code** (any Python kernel, no Spark) | `spark` is missing Ã¢â€ â€™ `RUN_MODE = "local"` | reads `factsales_gold` straight from OneLake with `deltalake` + `azure-identity` (Delta protocol, always the latest committed version), writes the result tables back to OneLake, logs MLflow to Fabric through `synapseml-mlflow` (falls back to `./mlruns`) |
 #
-#  Local setup: `pip install -r requirements-local.txt`, sign in once with `az login` (or let the browser prompt appear), open this file in VS Code, pick your Python kernel and run all. Details in `README_VSCode.md`.
+# Local setup: `pip install -r requirements-local.txt`, sign in once with `az login` (or let the browser prompt appear), open this file in VS Code, pick your Python kernel and run all. Details in `README_VSCode.md`.
 #
-#  **What it does**
-#  1. Builds the daily revenue series (`Quantity Ãƒâ€” UnitPrice + Tax`).
-#  2. Benchmarks 9 candidate forecasters with rolling-origin back-tests (train up to a month-end cutoff, forecast the next 3 months) and scores them on **weekly** and **monthly** totals: MAE, RMSE, MAPE, sMAPE, WAPE, Accuracy (= 100 Ã¢Ë†â€™ WAPE) and bias.
-#  3. Picks the champion (lowest average weekly sMAPE), retrains on all history, forecasts the rest of the current month + `HORIZON_MONTHS` full months.
-#  4. Writes daily / weekly / monthly tables + the benchmark table, logs runs, metrics and models to MLflow.
+# **What it does**
+# 1. Builds the daily revenue series (`Quantity Ãƒâ€” UnitPrice + Tax`).
+# 2. Benchmarks 9 candidate forecasters with rolling-origin back-tests (train up to a month-end cutoff, forecast the next 3 months) and scores them on **weekly** and **monthly** totals: MAE, RMSE, MAPE, sMAPE, WAPE, Accuracy (= 100 Ã¢Ë†â€™ WAPE) and bias.
+# 3. Picks the champion (lowest average weekly sMAPE), retrains on all history, forecasts the rest of the current month + `HORIZON_MONTHS` full months.
+# 4. Writes daily / weekly / monthly tables + the benchmark table, logs runs, metrics and models to MLflow.
 #
-#  **Pipeline note** Ã¢â‚¬â€œ Prophet is not in the default Fabric runtime. Interactively the first cell installs it; for pipeline runs attach an *Environment* that contains `prophet`, or add the notebook-activity parameter `_inlineInstallationEnabled = true` (Boolean).
-#
-#
-#
+# **Pipeline note** Ã¢â‚¬â€œ Prophet is not in the default Fabric runtime. Interactively the first cell installs it; for pipeline runs attach an *Environment* that contains `prophet`, or add the notebook-activity parameter `_inlineInstallationEnabled = true` (Boolean).
 
+# CELL ********************
+
+# Only Prophet is missing from the default Fabric runtime (statsmodels, scikit-learn, lightgbm, mlflow are included).
+# KEEP THIS AS THE FIRST CELL: in Fabric, %pip restarts the Python interpreter.
+# Locally, install everything with: pip install -r requirements-local.txt
+try:
+    import prophet  # noqa: F401
+    print("prophet", prophet.__version__, "available")
+except ImportError:
+    %pip install prophet -q
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 # PARAMETERS CELL ********************
 
 # ---------------- Parameters (mark as "parameter cell" to override from a pipeline) ----------------
@@ -77,10 +93,8 @@ BACKTEST_HORIZON_MONTHS = 3
 INTERVAL_WIDTH    = 0.90    # prediction-interval width
 
 # local (VS Code python kernel) only
-LOCAL_MLFLOW_TO_FABRIC = True           # log locally by default; set True only after Fabric MLflow workspace access is granted
+LOCAL_MLFLOW_TO_FABRIC = True            # log to the Fabric workspace via synapseml-mlflow; requires workspace MLflow access
 LOCAL_MLFLOW_FALLBACK  = "file:./mlruns" # used when the plugin is not installed
-
-
 
 # METADATA ********************
 
@@ -88,13 +102,93 @@ LOCAL_MLFLOW_FALLBACK  = "file:./mlruns" # used when the plugin is not installed
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-
 # MARKDOWN ********************
 
-#  ## 1. Connect to the Gold lakehouse (Fabric Spark or OneLake from your laptop)
-#
-#
+# ## 1. Connect to the Gold lakehouse (Fabric Spark or OneLake from your laptop)
 
+# CELL ********************
+
+import os, warnings
+import numpy as np
+import pandas as pd
+
+warnings.filterwarnings("ignore")
+
+try:
+    spark                      # exists in Fabric Spark sessions (portal, pipeline, VS Code "Microsoft Fabric Runtime" kernel)
+    RUN_MODE = "fabric-spark"
+except NameError:
+    RUN_MODE = "local"
+print("RUN_MODE =", RUN_MODE)
+
+GOLD_TABLE_ROOT = f"abfss://{WORKSPACE_ID}@onelake.dfs.fabric.microsoft.com/{GOLD_LAKEHOUSE_ID}/Tables/{SCHEMA}"
+
+def spark_table_name(table):
+    return ".".join(p for p in (LAKEHOUSE_NAME, SCHEMA, table) if p)
+
+def onelake_path(table):
+    return f"{GOLD_TABLE_ROOT}/{table}"
+
+if RUN_MODE == "local":
+    from deltalake import DeltaTable, write_deltalake
+
+    def onelake_storage_options():
+        if not GOLD_TABLE_ROOT.startswith("abfss://"):
+            return {}
+        from azure.identity import DefaultAzureCredential   # az login / VS Code sign-in / browser prompt
+        cred = DefaultAzureCredential(exclude_interactive_browser_credential=False)
+        token = cred.get_token("https://storage.azure.com/.default").token
+        return {"bearer_token": token, "use_fabric_endpoint": "true"}
+
+
+def read_fact_daily():
+    # Always queries the live Delta table (latest committed version) - nothing is cached or copied.
+    if RUN_MODE == "fabric-spark":
+        from pyspark.sql import functions as F
+        fact = spark.read.table(spark_table_name(FACT_TABLE))
+        revenue = F.col("Quantity") * F.col("UnitPrice") + (F.col("Tax") if INCLUDE_TAX else F.lit(0.0))
+        pdf = (fact.filter(F.col("OrderDate").isNotNull())
+                   .groupBy("OrderDate")
+                   .agg(F.sum(revenue).alias("Revenue"), F.count("*").alias("OrderLines"))
+                   .orderBy("OrderDate")
+                   .toPandas())
+    else:
+        dt = DeltaTable(onelake_path(FACT_TABLE), storage_options=onelake_storage_options())
+        pdf = dt.to_pandas(columns=["OrderDate", "Quantity", "UnitPrice", "Tax"]).dropna(subset=["OrderDate"])
+        pdf["Revenue"] = (pdf["Quantity"].astype(float) * pdf["UnitPrice"].astype(float)
+                          + (pdf["Tax"].astype(float) if INCLUDE_TAX else 0.0))
+        pdf = pdf.groupby("OrderDate").agg(Revenue=("Revenue", "sum"), OrderLines=("Revenue", "size")).reset_index()
+    pdf["OrderDate"] = pd.to_datetime(pdf["OrderDate"])
+    return pdf.sort_values("OrderDate").reset_index(drop=True)
+
+
+def write_table(pdf, table, date_cols=(), mode="overwrite"):
+    # Writes a pandas DataFrame to a Delta table in the Gold lakehouse (mode = "overwrite" or "append").
+    pdf = pdf.copy()
+    if RUN_MODE == "fabric-spark":
+        from pyspark.sql import functions as F
+        sdf = spark.createDataFrame(pdf)
+        for c in date_cols:
+            sdf = sdf.withColumn(c, F.to_date(c))
+        writer = sdf.write.format("delta").mode(mode)
+        writer = writer.option("overwriteSchema", "true") if mode == "overwrite" else writer.option("mergeSchema", "true")
+        writer.saveAsTable(spark_table_name(table))
+    else:
+        for c in date_cols:
+            pdf[c] = pd.to_datetime(pdf[c]).dt.date
+        for c in pdf.columns:                                   # Delta stores microsecond timestamps
+            if pd.api.types.is_datetime64_any_dtype(pdf[c]):
+                pdf[c] = pdf[c].astype("datetime64[us, UTC]" if getattr(pdf[c].dt, "tz", None) is not None else "datetime64[us]")
+        write_deltalake(onelake_path(table), pdf, mode=mode, schema_mode="overwrite" if mode == "overwrite" else "merge",
+                        storage_options=onelake_storage_options())
+    print(f"{'appended' if mode == 'append' else 'wrote'} {len(pdf):,} rows -> {table}")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 # CELL ********************
 
 # ---- MLflow tracking: Fabric experiment in both modes when possible ----
@@ -130,30 +224,68 @@ except Exception as exc:
 mlflow.autolog(disable=True)          # everything is logged explicitly
 print("MLflow tracking URI:", mlflow.get_tracking_uri())
 
-
-
 # METADATA ********************
 
 # META {
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-
 # MARKDOWN ********************
 
-#  ## 2. Daily, weekly and monthly revenue history
-#
-#
+# ## 2. Daily, weekly and monthly revenue history
 
 # CELL ********************
 
- [markdown]
+daily_pdf = read_fact_daily()
+daily = (daily_pdf.set_index("OrderDate")["Revenue"].astype(float)
+                  .sort_index().asfreq("D", fill_value=0.0))          # continuous calendar, 0 on days without orders
+LAST_DATE = daily.index.max()
+is_month_end = LAST_DATE == LAST_DATE + pd.offsets.MonthEnd(0)
+FORECAST_END = LAST_DATE + pd.offsets.MonthEnd(HORIZON_MONTHS if is_month_end else HORIZON_MONTHS + 1)
+HORIZON_DAYS = int((FORECAST_END - LAST_DATE).days)
+
+print(f"{len(daily)} days | {daily.index.min().date()} -> {LAST_DATE.date()} | total revenue {daily.sum():,.0f}")
+print(f"forecast window: {(LAST_DATE + pd.Timedelta(days=1)).date()} -> {FORECAST_END.date()} ({HORIZON_DAYS} days)\n")
+print("Rows per year (if a year is missing, check date parsing in Silver_Notebook):")
+print(daily_pdf.assign(Year=daily_pdf["OrderDate"].dt.year).groupby("Year")
+               .agg(days_with_sales=("OrderDate", "nunique"), order_lines=("OrderLines", "sum"), revenue=("Revenue", "sum")).round(0))
+
+
+def to_periods(frame, grain):
+    # frame: DataFrame indexed by day. Returns per-period sums + number of days covered, indexed by period start.
+    rule = "W-SUN" if grain == "weekly" else "MS"          # ISO weeks (Mon-Sun) / calendar months
+    out = frame.resample(rule).sum()
+    out["Days"] = frame.iloc[:, 0].resample(rule).count()
+    if grain == "weekly":
+        out.index = out.index - pd.Timedelta(days=6)        # label by Monday
+    out.index.name = "PeriodStart"
+    return out
+
+actual_weekly  = to_periods(daily.to_frame("ActualRevenue"), "weekly").rename(columns={"Days": "ActualDays"})
+actual_monthly = to_periods(daily.to_frame("ActualRevenue"), "monthly").rename(columns={"Days": "ActualDays"})
+print("\nLast 6 weeks (Mon-Sun):");  print(actual_weekly.tail(6).round(0))
+print("\nLast 6 months:");          print(actual_monthly.tail(6).round(0))
+
 # METADATA ********************
 
 # META {
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+# MARKDOWN ********************
+
+# ## 3. Candidate models (with scaling where it matters)
+#
+# | candidate | type | scaling |
+# |---|---|---|
+# | `naive_last_week`, `moving_avg_4w` | baselines | Ã¢â‚¬â€œ |
+# | `holt_damped` | Holt's damped-trend exponential smoothing on weekly totals | scale-invariant |
+# | `prophet` | piecewise-linear trend with changepoints + yearly seasonality, daily data | scale-invariant (log-target was tested and hurt) |
+# | `ridge_lags` | Ridge regression on lagged weekly growth rates | **StandardScaler** inside the pipeline (required for a penalised linear model) + **log target** |
+# | `lightgbm_lags` | gradient-boosted trees on the same features | StandardScaler in the pipeline for consistency (trees are insensitive to it) + log target |
+# | `prophet_holt_blend`, `prophet_ridge_blend`, `prophet_holt_ridge_blend` | averages of components | Ã¢â‚¬â€œ |
+#
+# The ML models predict weekly *log-growth* (`log(1+y_t) Ã¢Ë†â€™ log(1+y_{tÃ¢Ë†â€™1})`) rather than the raw level: it makes the target stationary, lets the models extrapolate the 2021 growth, and removes the scale of revenue from the problem. Intervals for the baselines and ML models use the empirical spread of h-week-ahead changes in log revenue measured on the training window.
 
 # CELL ********************
 
@@ -308,31 +440,82 @@ def score(actual, forecast):
             "AccuracyPct": float(max(0.0, 100 - wape)),
             "BiasPct": float(100 * np.sum(err) / max(np.sum(a), 1e-9))}
 
-
-
 # METADATA ********************
 
 # META {
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-
 # MARKDOWN ********************
 
-#  ## 4. Benchmark: rolling-origin back-test on weekly and monthly totals
-#  Each fold trains on everything up to a month-end cutoff and forecasts the next 3 calendar months; the folds are the last three quarters of history. The champion is the lowest average **weekly sMAPE** (weekly has ~13 points per fold, monthly only 3, so it is the more stable criterion).
-#
-#
+# ## 4. Benchmark: rolling-origin back-test on weekly and monthly totals
+# Each fold trains on everything up to a month-end cutoff and forecasts the next 3 calendar months; the folds are the last three quarters of history. The champion is the lowest average **weekly sMAPE** (weekly has ~13 points per fold, monthly only 3, so it is the more stable criterion).
 
 # CELL ********************
 
- [markdown]
+import time
+
+eval_end = LAST_DATE if is_month_end else LAST_DATE + pd.offsets.MonthEnd(-1)
+cutoffs = [eval_end + pd.offsets.MonthEnd(-BACKTEST_HORIZON_MONTHS * k) for k in range(BACKTEST_FOLDS, 0, -1)]
+
+rows = []
+for fold, cutoff in enumerate(cutoffs, start=1):
+    horizon_end = cutoff + pd.offsets.MonthEnd(BACKTEST_HORIZON_MONTHS)
+    train  = daily[:cutoff]
+    actual = daily[cutoff + pd.Timedelta(days=1): horizon_end]
+    start  = cutoff + pd.Timedelta(days=1)
+
+    preds = {}
+    for comp, (fit_fn, predict_fn) in COMPONENTS.items():
+        t0 = time.time()
+        preds[comp] = predict_fn(fit_fn(train), start, len(actual))
+        print(f"fold {fold} | train to {cutoff.date()} | {comp:<16} {time.time() - t0:5.1f}s")
+
+    actual_w, actual_m = weekly_bins(actual), actual.resample("MS").sum()
+    for cand, comps in CANDIDATES.items():
+        fc = blend(preds, comps)["yhat"]
+        for grain, a, f in (("weekly", actual_w, weekly_bins(fc)), ("monthly", actual_m, fc.resample("MS").sum())):
+            rows.append({"Model": cand, "Fold": fold, "CutoffDate": cutoff.date(), "HorizonEnd": horizon_end.date(),
+                         "Grain": grain, "Periods": len(a), **score(a.values, f.values)})
+
+backtest = pd.DataFrame(rows)
+METRICS = ["MAE", "RMSE", "MAPE", "sMAPE", "WAPE", "AccuracyPct", "BiasPct"]
+leaderboard = (backtest.groupby(["Grain", "Model"])[METRICS].mean()
+                       .unstack("Grain").swaplevel(axis=1).sort_index(axis=1))
+leaderboard = leaderboard.sort_values(("weekly", "sMAPE"))
+CHAMPION = leaderboard.index[0]
+backtest["IsChampion"] = backtest["Model"].eq(CHAMPION)
+
+pd.set_option("display.width", 220)
+print("\n=== Benchmark: average over folds (weekly grain) ===")
+print(leaderboard["weekly"].round(1).to_string())
+print("\n=== Benchmark: average over folds (monthly grain) ===")
+print(leaderboard["monthly"].loc[leaderboard.index].round(1).to_string())
+print(f"\nChampion: {CHAMPION}")
+
+# one MLflow run per candidate so the benchmark is visible in the experiment
+for cand, comps in CANDIDATES.items():
+    with mlflow.start_run(run_name=f"backtest_{cand}"):
+        mlflow.log_params({"model": cand, "components": "+".join(comps), "backtest_folds": BACKTEST_FOLDS,
+                           "backtest_horizon_months": BACKTEST_HORIZON_MONTHS, "include_tax": INCLUDE_TAX,
+                           **({f"prophet_{k}": v for k, v in PROPHET_PARAMS.items()} if "prophet" in comps else {}),
+                           **({"features": ",".join(ML_FEATURE_NAMES), "scaler": "StandardScaler", "target": "weekly log-growth"}
+                              if any(c.endswith("_lags") for c in comps) else {})})
+        for grain in ("weekly", "monthly"):
+            mlflow.log_metrics({f"{grain}_{m}": float(v) for m, v in leaderboard.loc[cand, grain].items()})
+            for _, r in backtest[(backtest["Model"] == cand) & (backtest["Grain"] == grain)].iterrows():
+                mlflow.log_metrics({f"fold_{grain}_sMAPE": r["sMAPE"], f"fold_{grain}_AccuracyPct": r["AccuracyPct"]}, step=int(r["Fold"]))
+        mlflow.set_tag("champion", str(cand == CHAMPION))
+
 # METADATA ********************
 
 # META {
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+# MARKDOWN ********************
+
+# ## 5. Retrain the champion on all history Ã¢â€ â€™ daily, weekly and monthly forecast
 
 # CELL ********************
 
@@ -411,31 +594,39 @@ cols = ["PeriodStart", "PeriodEnd", "RecordType", "ActualRevenue", "ForecastReve
 print("Weekly (last 4 actual weeks + forecast):");  print(forecast_weekly[forecast_weekly["PeriodEnd"] >= LAST_DATE - pd.Timedelta(weeks=4)][cols].round(0).to_string(index=False))
 print("\nMonthly (last 3 actual months + forecast):"); print(forecast_monthly[forecast_monthly["PeriodEnd"] >= LAST_DATE - pd.DateOffset(months=3)][cols].round(0).to_string(index=False))
 
-
-
 # METADATA ********************
 
 # META {
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-
 # MARKDOWN ********************
 
-#  ## 6. Write everything to the Gold lakehouse
-#  The four main tables are overwritten on each run (stamped with `ModelRunTS`); `revenue_forecast_history_gold` is appended to, so every run's monthly forecast is kept and can later be compared with the actual months (forecast accuracy over time).
-#
-#
+# ## 6. Write everything to the Gold lakehouse
+# The four main tables are overwritten on each run (stamped with `ModelRunTS`); `revenue_forecast_history_gold` is appended to, so every run's monthly forecast is kept and can later be compared with the actual months (forecast accuracy over time).
 
 # CELL ********************
 
- [markdown]
+write_table(forecast_daily,   FORECAST_TABLE, date_cols=("ForecastDate", "HistoryEndDate"))
+write_table(forecast_weekly,  WEEKLY_TABLE,   date_cols=("PeriodStart", "PeriodEnd", "HistoryEndDate"))
+write_table(forecast_monthly, MONTHLY_TABLE,  date_cols=("PeriodStart", "PeriodEnd", "HistoryEndDate"))
+write_table(backtest.assign(ModelRunTS=RUN_TS, RunMode=RUN_MODE), BACKTEST_TABLE, date_cols=("CutoffDate", "HorizonEnd"))
+
+if KEEP_FORECAST_HISTORY:   # one row per forecast month per run -> join to actual months later to measure real-life accuracy
+    hist_cols = ["PeriodStart", "PeriodEnd", "yyyymm", "ForecastDays", "ForecastRevenue", "ForecastLower", "ForecastUpper",
+                 "Model", "HistoryEndDate", "ModelRunTS", "MLflowRunId", "RunMode"]
+    write_table(forecast_monthly.loc[forecast_monthly["ForecastDays"] > 0, hist_cols], HISTORY_TABLE,
+                date_cols=("PeriodStart", "PeriodEnd", "HistoryEndDate"), mode="append")
+
 # METADATA ********************
 
 # META {
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+# MARKDOWN ********************
+
+# ## 7. Charts
 
 # CELL ********************
 
@@ -460,23 +651,16 @@ ax2.errorbar(fut_m.index, fut_m["ActualRevenue"] + fut_m["ForecastRevenue"],
 ax2.set_title("Monthly revenue"); ax2.legend(loc="upper left"); ax2.grid(alpha=0.3, axis="y")
 plt.tight_layout(); plt.show()
 
-
-
 # METADATA ********************
 
 # META {
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-
 # MARKDOWN ********************
 
-#  ## 8. Next steps
-#  * **Pipeline** Ã¢â‚¬â€œ add this notebook as a third activity after `Gold_Notebook` (On success). Handle the Prophet dependency (Environment or `_inlineInstallationEnabled`).
-#  * **Power BI** Ã¢â‚¬â€œ `revenue_weekly_gold` / `revenue_monthly_gold` already contain actual + forecast per period (`TotalRevenue` for a continuous line, `ForecastLower/Upper` for the band); `forecast_backtest_gold` gives the model leaderboard (filter `Grain`); join `revenue_forecast_history_gold` to `revenue_monthly_gold` on `yyyymm` to report how accurate past forecasts turned out.
-#  * **VS Code** Ã¢â‚¬â€œ see `README_VSCode.md`: Fabric extension + *Microsoft Fabric Runtime* kernel to run on Fabric Spark, or a plain Python kernel that reads OneLake directly (`RUN_MODE = local`).
-#  * **Extensions** Ã¢â‚¬â€œ per-category forecasts (bikes vs. accessories), holidays/promotions as Prophet regressors or ML features, hyper-parameter search on the ML pipelines, more folds as history grows.
-#
-#
-#
-#
+# ## 8. Next steps
+# * **Pipeline** Ã¢â‚¬â€œ add this notebook as a third activity after `Gold_Notebook` (On success). Handle the Prophet dependency (Environment or `_inlineInstallationEnabled`).
+# * **Power BI** Ã¢â‚¬â€œ `revenue_weekly_gold` / `revenue_monthly_gold` already contain actual + forecast per period (`TotalRevenue` for a continuous line, `ForecastLower/Upper` for the band); `forecast_backtest_gold` gives the model leaderboard (filter `Grain`); join `revenue_forecast_history_gold` to `revenue_monthly_gold` on `yyyymm` to report how accurate past forecasts turned out.
+# * **VS Code** Ã¢â‚¬â€œ see `README_VSCode.md`: Fabric extension + *Microsoft Fabric Runtime* kernel to run on Fabric Spark, or a plain Python kernel that reads OneLake directly (`RUN_MODE = local`).
+# * **Extensions** Ã¢â‚¬â€œ per-category forecasts (bikes vs. accessories), holidays/promotions as Prophet regressors or ML features, hyper-parameter search on the ML pipelines, more folds as history grows.
