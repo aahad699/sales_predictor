@@ -1,11 +1,11 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/platform/platformProperties.json",
-  "version": "2.0",
-  "config": {
-    "logicalId": "6b2a84d1-1486-4cbc-9f87-ef3a4dac515d"
-  },
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
     "displayName": "Revenue_Forecast_Notebook"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "6b2a84d1-1486-4cbc-9f87-ef3a4dac515d"
   }
 }
