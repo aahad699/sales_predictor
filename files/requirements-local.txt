@@ -1,0 +1,17 @@
+# Local VS Code environment for Revenue_Forecast_Notebook.ipynb (RUN_MODE = "local")
+pandas>=2.0
+numpy
+scipy
+scikit-learn
+statsmodels
+prophet
+lightgbm
+matplotlib
+ipykernel
+# live access to OneLake (Delta tables) from your laptop
+deltalake>=0.20
+azure-identity
+# MLflow: log to the Fabric workspace from outside Fabric (Microsoft's synapseml-mlflow plugin)
+# if you don't need that, replace these two lines with plain `mlflow` and set LOCAL_MLFLOW_TO_FABRIC = False
+mlflow-skinny<=2.22.2
+synapseml-mlflow

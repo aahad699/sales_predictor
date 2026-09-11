@@ -1,0 +1,36 @@
+# Python environments, caches, and build artifacts
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Jupyter notebook checkpoints and local execution artifacts
+.ipynb_checkpoints/
+mlruns/
+
+# Secrets and machine-specific configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.*
+.vscode/
+
+# Microsoft Fabric / VS Code generated workspace files
+.stubs/
+.vfscache/
+.vfsmeta/
+.work-folder-info
+1dca1c65-3ce2-483e-a7fb-baf7fca28e9f/
